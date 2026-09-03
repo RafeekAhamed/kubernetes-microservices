@@ -28,7 +28,3 @@ jobs:
       run: |
        docker tag backend:${{ github.sha }} ${{ secrets.REGISTRY_USERNAME }}/backend:${{ github.sha }}
        docker push ${{ secrets.REGISTRY_USERNAME }}/backend:${{ github.sha }}
-       
-    - name: Deploy to Kubernetes
-      run: |
-        kubectl apply -f k8s/
