@@ -2,276 +2,326 @@
 
 ## 📌 Project Overview
 
-This project demonstrates the deployment and management of a containerized microservices application using **Kubernetes**.
+This project demonstrates the deployment, scaling, health monitoring, troubleshooting, and release management of a containerized backend microservice on **Kubernetes**.
 
-The application consists of a **Frontend, Backend API, and PostgreSQL database**, deployed using Kubernetes workloads and services. The project also includes **Docker containerization, Helm-based deployment, health probes, resource management, RBAC, Ingress, Horizontal Pod Autoscaling, rolling updates, rollback, and GitHub Actions CI/CD**.
+The project uses **Docker, Kubernetes, Helm, GitHub Actions, Docker Hub, PostgreSQL, RBAC, Ingress, ConfigMaps, Secrets, readiness/liveness probes, resource requests/limits, and Horizontal Pod Autoscaling**.
 
-The project is designed to demonstrate practical Kubernetes and DevOps skills required for production-oriented container orchestration.
+The project is intentionally implemented as a **pure Kubernetes environment without Azure/AKS**, focusing on practical Kubernetes and DevOps skills.
+
+### Key capabilities demonstrated
+
+- Docker containerization
+- Kubernetes Deployments and Services
+- Helm-based application packaging and release management
+- Readiness and liveness probes
+- CPU/memory resource requests and limits
+- Horizontal Pod Autoscaling
+- ConfigMaps and Secrets
+- ServiceAccounts, Roles, and RoleBindings
+- Ingress
+- Rolling updates
+- Helm upgrades and rollback
+- GitHub Actions CI/CD
+- Docker Hub image publishing
+- Kubernetes troubleshooting and operational validation
 
 ---
 
-## 🏗️ Architecture
+# 🏗️ Architecture
 
 ```text
-                    ┌──────────────────────┐
-                    │       GitHub         │
-                    │   Source Repository  │
-                    └──────────┬───────────┘
-                               │
-                               ▼
-                    ┌──────────────────────┐
-                    │   GitHub Actions     │
-                    │     CI/CD Pipeline   │
-                    └──────────┬───────────┘
-                               │
-                         Docker Build
-                               │
-                               ▼
-                    ┌──────────────────────┐
-                    │   Container Registry │
-                    └──────────┬───────────┘
-                               │
-                               ▼
-                 ┌────────────────────────────┐
-                 │        Kubernetes          │
-                 │      microservices NS       │
-                 │                            │
-                 │  ┌──────────────────────┐  │
-                 │  │       Ingress        │  │
-                 │  └──────────┬───────────┘  │
-                 │             │              │
-                 │      ┌──────┴──────┐       │
-                 │      ▼             ▼       │
-                 │  Frontend       Backend    │
-                 │  Deployment     Deployment │
-                 │                    │        │
-                 │                    ▼        │
-                 │              PostgreSQL     │
-                 │              Deployment     │
-                 └────────────────────────────┘
+                        Developer
+                            |
+                            | git push
+                            v
+                    +---------------+
+                    |    GitHub     |
+                    |   Repository  |
+                    +-------+-------+
+                            |
+                            v
+                    +---------------+
+                    | GitHub Actions|
+                    | Build & Push  |
+                    +-------+-------+
+                            |
+                            v
+                    +---------------+
+                    |   Docker Hub  |
+                    | backend:<SHA> |
+                    +-------+-------+
+                            |
+                            v
+              +--------------------------------+
+              |          Kubernetes            |
+              |        microservices NS        |
+              |                                |
+              |  +--------------------------+  |
+              |  | Ingress                  |  |
+              |  | microservices.local      |  |
+              |  +------------+-------------+  |
+              |               |                |
+              |               v                |
+              |       +---------------+        |
+              |       | Backend       |        |
+              |       | Deployment    |        |
+              |       | 2 - 5 replicas|        |
+              |       +-------+-------+        |
+              |               |                |
+              |               v                |
+              |       +---------------+        |
+              |       | Backend       |        |
+              |       | ClusterIP     |        |
+              |       | :5000         |        |
+              |       +---------------+        |
+              |                                |
+              |       +---------------+        |
+              |       | PostgreSQL    |        |
+              |       | Deployment    |        |
+              |       +-------+-------+        |
+              |               |                |
+              |               v                |
+              |       PostgreSQL :5432         |
+              |                                |
+              |       +---------------+        |
+              |       | HPA           |        |
+              |       | CPU target 70%|        |
+              |       | min 2 / max 5 |        |
+              |       +---------------+        |
+              +--------------------------------+
 ```
 
 ---
 
-## 🛠️ Technologies
+# 🛠️ Technology Stack
 
-| Technology     | Purpose                          |
-| -------------- | -------------------------------- |
-| Kubernetes     | Container orchestration          |
-| Docker         | Application containerization     |
-| Helm           | Kubernetes package management    |
-| GitHub Actions | CI/CD automation                 |
-| PostgreSQL     | Database                         |
-| Linux          | Container/Kubernetes environment |
-| YAML           | Kubernetes configuration         |
-| Git/GitHub     | Source control                   |
-| kubectl        | Kubernetes administration        |
+| Technology | Purpose |
+|---|---|
+| Kubernetes | Container orchestration |
+| Docker | Containerization |
+| Helm | Kubernetes package/release management |
+| GitHub Actions | CI/CD automation |
+| Docker Hub | Container image registry |
+| Python / Flask | Backend API |
+| PostgreSQL | Database |
+| YAML | Kubernetes and CI/CD configuration |
+| Git / GitHub | Source control |
+| kubectl | Kubernetes administration |
+| Linux | Container/runtime environment |
+| PowerShell | Local administration and troubleshooting |
 
 ---
 
-## 📂 Project Structure
+# 📂 Project Structure
 
 ```text
 kubernetes-microservices/
 │
+├── .github/
+│   └── workflows/
+│       └── kubernetes-ci-cd.yml
+│
 ├── backend/
-│   ├── app.py
-│   ├── requirements.txt
-│   └── Dockerfile
+│   └── app.py
 │
 ├── frontend/
-│   ├── Dockerfile
 │   └── ...
-│
-├── k8s/
-│   ├── namespace.yaml
-│   ├── configmap.yaml
-│   ├── secret.yaml
-│   ├── postgres-deployment.yaml
-│   ├── postgres-service.yaml
-│   ├── backend-deployment.yaml
-│   ├── backend-service.yaml
-│   ├── frontend-deployment.yaml
-│   ├── frontend-service.yaml
-│   ├── rbac.yaml
-│   ├── ingress.yaml
-│   └── hpa.yaml
 │
 ├── helm/
 │   └── microservices/
 │       ├── Chart.yaml
 │       ├── values.yaml
+│       ├── NOTES.txt
 │       └── templates/
+│           ├── deployment.yaml
+│           ├── service.yaml
+│           ├── hpa.yaml
+│           ├── serviceaccount.yaml
+│           └── test-connection.yaml
 │
-├── .github/
-│   └── workflows/
-│       └── ci-cd.yml
+├── k8s/
+│   ├── ...
+│   └── ...
 │
-├── .gitignore
+├── Dockerfile
+├── requirements.txt
+├── docker-compose.yml
 └── README.md
 ```
 
----
-
-# 🚀 Deployment Workflow
-
-## 1. Clone the Repository
-
-```bash
-git clone https://github.com/RafeekAhamed/kubernetes-microservices.git
-cd kubernetes-microservices
-```
+> The current backend Dockerfile is located at the **repository root** and copies the application into `/app`.
 
 ---
 
-## 2. Build Docker Images
+# 🐳 Docker
 
-Build the backend image:
+## Build the backend image
 
-```bash
-docker build -t backend:latest ./backend
+From the repository root:
+
+```powershell
+docker build -t backend:test .
 ```
 
-Build the frontend image:
+Run the container:
 
-```bash
-docker build -t frontend:latest ./frontend
+```powershell
+docker run --rm -p 5000:5000 backend:test
 ```
 
-Verify images:
+Test the API:
 
-```bash
-docker images
+```powershell
+curl http://localhost:5000
 ```
 
----
+The container uses a non-root application user:
 
-## 3. Test Docker Containers
-
-Run the backend:
-
-```bash
-docker run -d -p 5000:5000 --name backend backend:latest
+```dockerfile
+USER appuser
 ```
 
-Test the health endpoint:
+The Dockerfile starts the Flask application with:
 
-```bash
-curl http://localhost:5000/health
-```
-
-Expected response:
-
-```json
-{
-  "status": "healthy"
-}
+```dockerfile
+CMD ["python", "backend/app.py"]
 ```
 
 ---
 
 # ☸️ Kubernetes Deployment
 
-## 4. Create Namespace
+The application runs inside the `microservices` namespace.
 
-```bash
-kubectl apply -f k8s/namespace.yaml
+Create the namespace:
+
+```powershell
+kubectl create namespace microservices
+```
+
+Check:
+
+```powershell
+kubectl get namespace microservices
+```
+
+Deploy Kubernetes resources from the manifests when required:
+
+```powershell
+kubectl apply -f k8s/ -n microservices
 ```
 
 Verify:
 
-```bash
-kubectl get namespaces
+```powershell
+kubectl get all -n microservices
 ```
 
 ---
 
-## 5. Deploy ConfigMap
+# 🚀 Helm Deployment
 
-```bash
-kubectl apply -f k8s/configmap.yaml -n microservices
+The project uses Helm for versioned Kubernetes application management.
+
+## Validate the chart
+
+```powershell
+helm lint helm\microservices
 ```
 
-Verify:
+Expected:
 
-```bash
-kubectl get configmap -n microservices
+```text
+1 chart(s) linted, 0 chart(s) failed
 ```
 
----
+## Render templates
 
-## 6. Deploy Secret
-
-```bash
-kubectl apply -f k8s/secret.yaml -n microservices
+```powershell
+helm template microservices helm\microservices
 ```
 
-Verify:
+## Install
 
-```bash
-kubectl get secrets -n microservices
+```powershell
+helm install microservices helm\microservices -n microservices --create-namespace
 ```
 
-> Kubernetes Secrets should be handled securely in real production environments. Avoid committing real credentials to GitHub.
+## Check release
 
----
-
-## 7. Deploy PostgreSQL
-
-```bash
-kubectl apply -f k8s/postgres-deployment.yaml -n microservices
-kubectl apply -f k8s/postgres-service.yaml -n microservices
+```powershell
+helm status microservices -n microservices
 ```
 
-Verify:
+## List releases
 
-```bash
-kubectl get pods -n microservices
-kubectl get svc -n microservices
+```powershell
+helm list -n microservices
 ```
 
 ---
 
-## 8. Deploy Backend
+# 📦 Backend Deployment
 
-```bash
-kubectl apply -f k8s/backend-deployment.yaml -n microservices
-kubectl apply -f k8s/backend-service.yaml -n microservices
+The Helm-managed backend Deployment uses:
+
+```text
+Replicas: 2
+Container port: 5000
+Service type: ClusterIP
+CPU request: 100m
+Memory request: 128Mi
+CPU limit: 500m
+Memory limit: 512Mi
 ```
 
-Verify:
+Check the Deployment:
 
-```bash
+```powershell
 kubectl get deployment backend -n microservices
-kubectl get pods -l app=backend -n microservices
+```
+
+Current verified state:
+
+```text
+NAME      READY   UP-TO-DATE   AVAILABLE
+backend   2/2     2            2
+```
+
+Check backend pods:
+
+```powershell
+kubectl get pods -n microservices -l app=backend
 ```
 
 ---
 
-## 9. Deploy Frontend
+# 🌐 Kubernetes Service
 
-```bash
-kubectl apply -f k8s/frontend-deployment.yaml -n microservices
-kubectl apply -f k8s/frontend-service.yaml -n microservices
+The backend is exposed internally through a ClusterIP Service:
+
+```text
+backend:5000
 ```
 
-Verify:
+Check:
 
-```bash
-kubectl get deployment frontend -n microservices
-kubectl get pods -l app=frontend -n microservices
+```powershell
+kubectl get svc backend -n microservices
+```
+
+Current verified configuration:
+
+```text
+TYPE        PORT
+ClusterIP   5000/TCP
 ```
 
 ---
 
-# 🔍 Health Checks
+# ❤️ Health Checks
 
-The backend deployment uses Kubernetes:
-
-* Readiness Probe
-* Liveness Probe
-
-Example:
+The backend uses Kubernetes readiness and liveness probes.
 
 ```yaml
 readinessProbe:
@@ -289,15 +339,31 @@ livenessProbe:
   periodSeconds: 20
 ```
 
-These probes allow Kubernetes to determine whether the application is ready to receive traffic and whether the container is healthy.
+### Readiness Probe
+
+Determines whether the application is ready to receive traffic.
+
+### Liveness Probe
+
+Allows Kubernetes to detect an unhealthy container and restart it when necessary.
+
+Check pod details:
+
+```powershell
+kubectl describe pod -n microservices -l app=backend
+```
+
+View logs:
+
+```powershell
+kubectl logs -n microservices -l app=backend
+```
 
 ---
 
 # 📊 Resource Management
 
-CPU and memory requests/limits are configured for workloads.
-
-Example:
+The backend Deployment defines resource requests and limits:
 
 ```yaml
 resources:
@@ -309,325 +375,619 @@ resources:
     memory: "512Mi"
 ```
 
-This helps Kubernetes schedule workloads efficiently and prevent uncontrolled resource consumption.
-
----
-
-# 🔐 RBAC
-
-Kubernetes **Role-Based Access Control (RBAC)** is configured to control access to cluster resources.
-
-Components include:
-
-* ServiceAccount
-* Role
-* RoleBinding
-
-Apply RBAC:
-
-```bash
-kubectl apply -f k8s/rbac.yaml -n microservices
-```
-
-Verify:
-
-```bash
-kubectl get role -n microservices
-kubectl get rolebinding -n microservices
-kubectl get serviceaccount -n microservices
-```
-
----
-
-# 🌐 Ingress
-
-Ingress provides HTTP/HTTPS routing to Kubernetes services.
-
-Apply:
-
-```bash
-kubectl apply -f k8s/ingress.yaml -n microservices
-```
-
-Verify:
-
-```bash
-kubectl get ingress -n microservices
-```
+This allows Kubernetes to make scheduling decisions based on requested resources and limits container resource consumption.
 
 ---
 
 # 📈 Horizontal Pod Autoscaling
 
-HPA is configured to automatically scale workloads based on resource utilization.
+The backend uses `autoscaling/v2` HPA.
 
-Apply:
+Configuration:
 
-```bash
-kubectl apply -f k8s/hpa.yaml -n microservices
+```text
+Minimum replicas: 2
+Maximum replicas: 5
+Target CPU:       70%
 ```
 
 Check:
 
-```bash
-kubectl get hpa -n microservices
+```powershell
+kubectl get hpa backend-hpa -n microservices
 ```
 
-Monitor:
+Expected healthy state:
 
-```bash
-kubectl get hpa -n microservices -w
+```text
+NAME          REFERENCE            TARGETS       MINPODS   MAXPODS   REPLICAS
+backend-hpa   Deployment/backend   cpu: 1%/70%   2         5         2
+```
+
+Metrics:
+
+```powershell
+kubectl top pods -n microservices
 ```
 
 ---
 
-# 📦 Helm Deployment
+## 🧪 HPA Validation
 
-The project uses Helm to package and deploy Kubernetes resources.
+The HPA was tested under CPU load.
 
-Validate the chart:
+Observed behavior:
 
-```bash
-helm lint helm/microservices
+```text
+Normal load
+    |
+    v
+2 replicas
+    |
+    | CPU load increased
+    v
+5 replicas
+    |
+    | CPU load removed
+    v
+2 replicas
 ```
 
-Render templates:
+Verified scaling lifecycle:
 
-```bash
-helm template microservices helm/microservices
+```text
+2 → 5 → 2
 ```
 
-Install:
+This demonstrates both HPA scale-up and scale-down behavior.
 
-```bash
-helm install microservices helm/microservices \
-  --namespace microservices \
-  --create-namespace
+---
+
+# 🔐 RBAC
+
+The project uses Kubernetes Role-Based Access Control.
+
+Components include:
+
+- ServiceAccount
+- Role
+- RoleBinding
+
+The `microservices` ServiceAccount is associated with a pod-reading Role.
+
+Check:
+
+```powershell
+kubectl get serviceaccount -n microservices
+kubectl get role -n microservices
+kubectl get rolebinding -n microservices
 ```
 
-Check the release:
+Example RBAC relationship:
 
-```bash
-helm list -n microservices
+```text
+ServiceAccount
+      |
+      v
+RoleBinding
+      |
+      v
+Role
+      |
+      v
+Pod read permissions
 ```
 
-Upgrade:
+---
 
-```bash
-helm upgrade microservices helm/microservices \
-  --namespace microservices
+# 🗂️ ConfigMap and Secrets
+
+Application configuration can be supplied through Kubernetes ConfigMaps.
+
+Check:
+
+```powershell
+kubectl get configmap -n microservices
 ```
 
-Rollback:
+Secrets:
 
-```bash
-helm rollback microservices 1 \
-  --namespace microservices
+```powershell
+kubectl get secrets -n microservices
 ```
+
+> Never commit real passwords, API keys, tokens, or credentials to GitHub. Use Kubernetes Secrets or an appropriate external secret-management solution for sensitive values.
+
+---
+
+# 🌐 Ingress
+
+The project includes an Ingress route for:
+
+```text
+microservices.local
+```
+
+Check:
+
+```powershell
+kubectl get ingress -n microservices
+```
+
+The Ingress provides HTTP routing toward the application Service.
+
+For local testing, configure the hostname according to the local Kubernetes/Ingress environment.
+
+---
+
+# 🗄️ PostgreSQL
+
+PostgreSQL runs as a Kubernetes workload and is exposed internally through a Kubernetes Service.
+
+Check:
+
+```powershell
+kubectl get deployment -n microservices
+kubectl get svc -n microservices
+```
+
+PostgreSQL Service port:
+
+```text
+5432
+```
+
+The backend communicates with PostgreSQL through Kubernetes service discovery.
 
 ---
 
 # 🔄 Rolling Updates
 
-Kubernetes Deployments support rolling updates without stopping the entire application.
+Kubernetes Deployments use rolling-update behavior to replace old Pods progressively.
 
-Example:
+Check rollout status:
 
-```bash
-kubectl set image deployment/backend \
-  backend=backend:v2 \
-  -n microservices
-```
-
-Monitor:
-
-```bash
+```powershell
 kubectl rollout status deployment/backend -n microservices
 ```
 
 View rollout history:
 
-```bash
+```powershell
 kubectl rollout history deployment/backend -n microservices
+```
+
+Restart the Deployment when required:
+
+```powershell
+kubectl rollout restart deployment/backend -n microservices
 ```
 
 ---
 
-# ↩️ Rollback
+# 📦 Helm Release Management
 
-If a deployment introduces an issue:
+Check Helm history:
 
-```bash
-kubectl rollout undo deployment/backend -n microservices
+```powershell
+helm history microservices -n microservices
+```
+
+The project has been tested with multiple Helm revisions, including successful upgrades and rollback recovery.
+
+---
+
+# ⏪ Helm Rollback & Failure Recovery
+
+A deliberate rollback test was performed to validate release recovery.
+
+Recovery workflow:
+
+```text
+Known-good Helm release
+          |
+          v
+Invalid image test
+          |
+          v
+Helm rollback
+          |
+          v
+Known-good configuration restored
+          |
+          v
+Successful Kubernetes rollout
+```
+
+The known-good backend image is:
+
+```text
+rafeekahamed/backend:47ee97acd74492bd34209a6374f640a56676a3aa
+```
+
+The verified rollback created Helm revision **11**:
+
+```text
+STATUS:      deployed
+REVISION:    11
+DESCRIPTION: Rollback to 9
+```
+
+After rollback:
+
+```text
+Backend Deployment: 2/2
+Backend Pods:       Running
+Rollout:             Successful
 ```
 
 Verify:
 
-```bash
-kubectl rollout status deployment/backend -n microservices
+```powershell
+kubectl get deployment backend -n microservices
+kubectl get pods -n microservices -l app=backend
 ```
+
+Verify the active image:
+
+```powershell
+kubectl get deployment backend -n microservices -o jsonpath="{.spec.template.spec.containers[0].image}"
+```
+
+---
+
+# 🧪 Helm Test
+
+The chart contains a Helm test hook for backend connectivity.
+
+Run:
+
+```powershell
+helm test microservices -n microservices
+```
+
+Verified result:
+
+```text
+TEST SUITE: microservices-test-connection
+Phase: Succeeded
+```
+
+This validates that the Helm test Pod can reach the backend Service.
 
 ---
 
 # 🔁 CI/CD with GitHub Actions
 
-The project includes a GitHub Actions workflow that automates:
+The GitHub Actions workflow automates the backend container image build and registry publishing process.
+
+Current workflow:
 
 ```text
-Developer
-    │
-    ▼
 Git Push
-    │
-    ▼
-GitHub Actions
-    │
-    ├── Build Docker Image
-    │
-    ├── Run Validation
-    │
-    ├── Push Image
-    │
-    └── Deploy to Kubernetes
+   |
+   v
+Checkout source
+   |
+   v
+Build Docker image
+   |
+   v
+Authenticate with Docker Hub
+   |
+   v
+Tag image with Git commit SHA
+   |
+   v
+Push image to Docker Hub
 ```
 
-Typical pipeline stages:
+The current workflow uses:
 
-1. Checkout source code
-2. Build Docker image
-3. Run application validation
-4. Authenticate with container registry
-5. Push Docker image
-6. Deploy/update Kubernetes workloads
-7. Verify deployment
+```yaml
+docker build -t backend:${{ github.sha }} .
+```
+
+The image is then published as:
+
+```text
+rafeekahamed/backend:<commit-sha>
+```
+
+Example verified image:
+
+```text
+rafeekahamed/backend:47ee97acd74492bd34209a6374f640a56676a3aa
+```
+
+### Important
+
+The current GitHub Actions workflow **builds and pushes the backend image**. Kubernetes deployment is currently managed locally through Helm rather than directly from the GitHub-hosted runner.
+
+This keeps the documentation aligned with the actual implemented pipeline.
 
 ---
 
-# 🧪 Application Testing
+# 🔒 GitHub Actions Secrets
 
-Check all Kubernetes resources:
+The workflow uses repository secrets:
 
-```bash
-kubectl get all -n microservices
+```text
+REGISTRY_URL
+REGISTRY_USERNAME
+REGISTRY_PASSWORD
 ```
 
-Check pods:
+`REGISTRY_PASSWORD` should contain a Docker Hub Access Token.
 
-```bash
-kubectl get pods -n microservices -o wide
+Never commit credentials directly into workflow files.
+
+---
+
+# 🔍 Kubernetes Troubleshooting
+
+## Check Pods
+
+```powershell
+kubectl get pods -n microservices
 ```
 
-Check services:
+## Check Backend Pods
 
-```bash
+```powershell
+kubectl get pods -n microservices -l app=backend
+```
+
+## Check Services
+
+```powershell
 kubectl get svc -n microservices
 ```
 
-Check deployments:
+## Check Deployments
 
-```bash
+```powershell
 kubectl get deployments -n microservices
 ```
 
-Check endpoints:
+## Check HPA
 
-```bash
-kubectl get endpoints -n microservices
+```powershell
+kubectl get hpa -n microservices
 ```
 
----
+## Check Metrics
 
-# 🔧 Troubleshooting
+```powershell
+kubectl top pods -n microservices
+kubectl top nodes
+```
 
-View pod logs:
+## View Logs
 
-```bash
+```powershell
 kubectl logs <pod-name> -n microservices
 ```
 
-Follow logs:
+## Follow Logs
 
-```bash
+```powershell
 kubectl logs -f <pod-name> -n microservices
 ```
 
-Describe a pod:
+## Describe Pod
 
-```bash
+```powershell
 kubectl describe pod <pod-name> -n microservices
 ```
 
-Describe deployment:
+## Describe Deployment
 
-```bash
+```powershell
 kubectl describe deployment backend -n microservices
 ```
 
-Check events:
+## Check Events
 
-```bash
+```powershell
 kubectl get events -n microservices --sort-by=.lastTimestamp
 ```
 
-Check service:
+## Check Service
 
-```bash
+```powershell
 kubectl describe svc backend -n microservices
 ```
 
 ---
 
-# 📌 Key Kubernetes Concepts Demonstrated
+# 🧰 Metrics Server
 
-* Kubernetes Namespaces
-* Deployments
-* ReplicaSets
-* Pods
-* Services
-* ConfigMaps
-* Secrets
-* RBAC
-* ServiceAccounts
-* Ingress
-* Resource Requests & Limits
-* Readiness Probes
-* Liveness Probes
-* Horizontal Pod Autoscaler
-* Rolling Updates
-* Rollbacks
-* Helm
-* Kubernetes Troubleshooting
-* Container Networking
-* CI/CD Automation
+HPA depends on Kubernetes resource metrics.
 
----
+Check:
 
-# 🎯 Project Objectives
+```powershell
+kubectl top pods -n microservices
+```
 
-The primary objectives of this project are to demonstrate practical experience with:
+For Minikube:
 
-* Containerized application deployment
-* Kubernetes workload management
-* Microservices architecture
-* Infrastructure configuration using YAML
-* Helm-based application packaging
-* Kubernetes security using RBAC
-* Application health monitoring
-* Horizontal scaling
-* Zero/minimal-downtime rolling deployments
-* Deployment rollback
-* CI/CD automation using GitHub Actions
+```powershell
+minikube addons enable metrics-server
+```
+
+Then:
+
+```powershell
+kubectl top pods -n microservices
+```
+
+The HPA should be validated only after resource metrics are available.
 
 ---
 
-# 💼 Resume Highlights
+# 🧪 Application and Infrastructure Validation
+
+Useful verification commands:
+
+```powershell
+kubectl get all -n microservices
+```
+
+```powershell
+kubectl get pods -n microservices -o wide
+```
+
+```powershell
+kubectl get svc -n microservices
+```
+
+```powershell
+kubectl get ingress -n microservices
+```
+
+```powershell
+kubectl get hpa -n microservices
+```
+
+```powershell
+helm status microservices -n microservices
+```
+
+```powershell
+helm test microservices -n microservices
+```
+
+---
+
+# 📊 Verified Project Results
+
+| Capability | Status |
+|---|---|
+| Docker image build | ✅ |
+| Docker Hub image push | ✅ |
+| GitHub Actions CI workflow | ✅ |
+| Kubernetes Deployment | ✅ |
+| Kubernetes Service | ✅ |
+| Helm chart lint | ✅ |
+| Helm deployment | ✅ |
+| Helm upgrade | ✅ |
+| Helm rollback | ✅ |
+| Helm test | ✅ |
+| Readiness probe | ✅ |
+| Liveness probe | ✅ |
+| Resource requests/limits | ✅ |
+| HPA scale-up | ✅ |
+| HPA scale-down | ✅ |
+| HPA lifecycle `2 → 5 → 2` | ✅ |
+| RBAC | ✅ |
+| Ingress | ✅ |
+| PostgreSQL | ✅ |
+| Rolling rollout | ✅ |
+| Failure recovery | ✅ |
+
+---
+
+# 🎯 DevOps & Kubernetes Skills Demonstrated
+
+### Kubernetes
+
+- Pods
+- Deployments
+- ReplicaSets
+- Services
+- Namespaces
+- ConfigMaps
+- Secrets
+- ServiceAccounts
+- RBAC
+- Ingress
+- Resource requests and limits
+- Readiness probes
+- Liveness probes
+- HPA
+- Rolling updates
+- Rollbacks
+
+### Helm
+
+- Chart structure
+- `values.yaml`
+- Templates
+- Release management
+- Upgrade
+- Rollback
+- Release history
+- Helm test hooks
+- Chart linting
+- Template rendering
+
+### Docker
+
+- Dockerfile
+- Image builds
+- Non-root containers
+- Container testing
+- Docker Hub publishing
+- Git SHA image tagging
+
+### CI/CD
+
+- GitHub Actions
+- Automated Docker builds
+- Registry authentication
+- Immutable image tags
+- Docker image publishing
+
+### Troubleshooting
+
+- `kubectl logs`
+- `kubectl describe`
+- Kubernetes Events
+- `kubectl top`
+- HPA troubleshooting
+- Image pull troubleshooting
+- Deployment rollout troubleshooting
+- Helm release troubleshooting
+
+---
+
+# 💼 Resume / Portfolio Highlights
 
 **Production-Ready Microservices Deployment & CI/CD Using Kubernetes**
 
-* Containerized microservices using Docker and deployed applications on Kubernetes using Deployments, Services, ConfigMaps, and Secrets.
-* Implemented Kubernetes readiness/liveness probes, resource requests/limits, RBAC, Ingress, and Horizontal Pod Autoscaling.
-* Packaged Kubernetes workloads using Helm and implemented rolling updates, deployment rollback, and operational troubleshooting.
-* Built GitHub Actions CI/CD automation for Docker image build, registry push, and Kubernetes deployment.
+- Containerized a Flask backend using Docker and deployed it on Kubernetes with Deployments, Services, ConfigMaps, Secrets, health probes, and resource controls.
+- Built and maintained a reusable Helm chart for Kubernetes release management, including configurable images, Services, HPA, ServiceAccount, health probes, and Helm test hooks.
+- Implemented and validated CPU-based HPA scaling from **2 → 5 → 2 replicas** under controlled load.
+- Automated Docker image build and Docker Hub publishing through GitHub Actions using Git commit SHA-based image versioning.
+- Implemented RBAC, Ingress, rolling updates, release history, and rollback-based recovery.
+- Performed a deliberate invalid-image rollback test and successfully restored the known-good application release.
+- Used `kubectl`, Helm, logs, metrics, rollout status, and Kubernetes events for deployment troubleshooting and operational validation.
+
+---
+
+# 📌 Project Outcomes
+
+The project demonstrates practical experience in:
+
+```text
+Containerization
+      ↓
+Kubernetes Deployment
+      ↓
+Service Discovery
+      ↓
+Health Monitoring
+      ↓
+Autoscaling
+      ↓
+Helm Release Management
+      ↓
+CI/CD Image Publishing
+      ↓
+Rollback & Recovery
+```
 
 ---
 
@@ -635,16 +995,16 @@ The primary objectives of this project are to demonstrate practical experience w
 
 **Rafeek Ahamed M**
 
-DevOps Engineer | Azure Cloud Engineer
+**DevOps Engineer | Azure Cloud Engineer**
 
-GitHub: `https://github.com/RafeekAhamed`
+GitHub:  
+https://github.com/RafeekAhamed
 
-LinkedIn: `https://linkedin.com/in/rafeek-ahamed-devops`
+LinkedIn:  
+https://linkedin.com/in/rafeek-ahamed-devops
 
 ---
 
-## ⭐ Project Status
+## ⭐ Project Focus
 
-**Status:** In Progress / Production-Ready Kubernetes Lab
-
-This project is continuously enhanced with additional Kubernetes, DevOps, CI/CD, security, observability, and automation capabilities.
+**Kubernetes • Docker • Helm • GitHub Actions • CI/CD • HPA • RBAC • Ingress • PostgreSQL • Linux • YAML**

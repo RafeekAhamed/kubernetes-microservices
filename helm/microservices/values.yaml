@@ -9,7 +9,7 @@ replicaCount: 2
 image:
   repository: rafeekahamed/backend
   pullPolicy: Always
-  tag: "dbae1e7c61573408df6386a99f5a89c22ad4ba23"
+  tag: "47ee97acd74492bd34209a6374f640a56676a3aa"
 
 # This is for the secrets for pulling an image from a private repository more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
 imagePullSecrets: []

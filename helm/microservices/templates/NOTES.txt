@@ -1,4 +1,50 @@
+PS D:\Projects\kubernetes-microservices> helm upgrade microservices helm\microservices `
+>>   -n microservices `
+>>   --set image.tag=invalid-rollback-test `
+>>   --server-side=true `
+>>   --force-conflicts
+
+
+Release "microservices" has been upgraded. Happy Helming!
+NAME: microservices
+LAST DEPLOYED: Sat Sep 26 12:48:43 2026
+NAMESPACE: microservices
+STATUS: deployed
+REVISION: 10
+DESCRIPTION: Upgrade complete
 NOTES:
+NAME: microservices
+LAST DEPLOYED: Sat Sep 26 11:53:29 2026
+NAMESPACE: microservices
+STATUS: deployed
+REVISION: 9
+DESCRIPTION: Upgrade complete
+RESOURCES:
+==> v1/Service
+NAME      TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)    AGE
+backend   ClusterIP   10.96.97.173   <none>        5000/TCP   23d
+
+==> v1/Deployment
+NAME      READY   UP-TO-DATE   AVAILABLE   AGE
+backend   2/2     2            2           23d
+
+==> v1/Pod(related)
+NAME                       READY   STATUS    RESTARTS   AGE
+backend-84649f7597-427cd   1/1     Running   0          105s
+backend-84649f7597-ncrr4   1/1     Running   0          87s
+
+==> v2/HorizontalPodAutoscaler
+NAME          REFERENCE            TARGETS       MINPODS   MAXPODS   REPLICAS   AGE
+backend-hpa   Deployment/backend   cpu: 1%/70%   2         5         2          23d
+
+==> v1/ServiceAccount
+NAME            AGE
+microservices   23d
+
+
+
+NOTES:
+
 1. Backend service:
    backend:5000
 
