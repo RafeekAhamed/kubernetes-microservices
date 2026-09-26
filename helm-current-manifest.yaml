@@ -1,0 +1,83 @@
+---
+# Source: microservices/templates/serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: microservices
+  labels:
+    helm.sh/chart: microservices-0.1.0
+    app.kubernetes.io/name: microservices
+    app.kubernetes.io/instance: microservices
+    app.kubernetes.io/version: "1.16.0"
+    app.kubernetes.io/managed-by: Helm
+automountServiceAccountToken: true
+
+---
+# Source: microservices/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: microservices
+  labels:
+    helm.sh/chart: microservices-0.1.0
+    app.kubernetes.io/name: microservices
+    app.kubernetes.io/instance: microservices
+    app.kubernetes.io/version: "1.16.0"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app.kubernetes.io/name: microservices
+    app.kubernetes.io/instance: microservices
+
+---
+# Source: microservices/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: microservices
+  labels:
+    helm.sh/chart: microservices-0.1.0
+    app.kubernetes.io/name: microservices
+    app.kubernetes.io/instance: microservices
+    app.kubernetes.io/version: "1.16.0"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: microservices
+      app.kubernetes.io/instance: microservices
+  template:
+    metadata:
+      labels:
+        helm.sh/chart: microservices-0.1.0
+        app.kubernetes.io/name: microservices
+        app.kubernetes.io/instance: microservices
+        app.kubernetes.io/version: "1.16.0"
+        app.kubernetes.io/managed-by: Helm
+    spec:
+      serviceAccountName: microservices
+      containers:
+        - name: microservices
+          image: "nginx:1.16.0"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+
+

@@ -5,7 +5,7 @@ metadata:
   labels:
     app: backend
 spec:
-  {{- if not .Values.autoscaling.enabled }}
+{{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
   {{- end }}
   selector:
@@ -16,7 +16,7 @@ spec:
       labels:
         app: backend
     spec:
-      serviceAccountName: {{ include "microservices.serviceAccountName" . }}
+      serviceAccountName: microservices
       containers:
         - name: backend
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
