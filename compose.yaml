@@ -1,0 +1,6 @@
+services:
+  kubernetesmicroservices:
+    image: kubernetesmicroservices
+    build:
+      context: .
+      dockerfile: ./Dockerfile
