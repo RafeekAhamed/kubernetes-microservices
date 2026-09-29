@@ -172,7 +172,7 @@ docker run --rm -p 5000:5000 backend:test
 Test the API:
 
 ```powershell
-curl http://localhost:5000
+curl.exe http://localhost:5000
 ```
 
 The container uses a non-root application user:
@@ -879,7 +879,7 @@ helm test microservices -n microservices
 | Liveness probe | ✅ |
 | Resource requests/limits | ✅ |
 | HPA scale-up | ✅ |
-| HPA scale-down | ✅ |
+| HPA scale-down (`5 → 2`) | ✅ |
 | HPA lifecycle `2 → 5 → 2` | ✅ |
 | RBAC | ✅ |
 | Ingress | ✅ |
@@ -990,6 +990,70 @@ Rollback & Recovery
 ```
 
 ---
+
+---
+
+# 📸 Project Screenshots
+
+The screenshots below provide evidence of the repository, CI image publishing, Kubernetes deployment, autoscaling, Helm release management, rollback recovery, and application validation.
+
+The following screenshots provide visual evidence of the implemented Kubernetes, Helm, CI/CD, autoscaling, rollback, and application-validation workflows.
+
+## GitHub Repository
+
+![GitHub Repository](screenshots/github-repository.png)
+
+## GitHub Actions CI/CD
+
+![GitHub Actions CI/CD](screenshots/github-actions.png)
+
+## Kubernetes Deployment
+
+![Kubernetes Deployment](screenshots/kubernetes-deployment.png)
+
+## HPA — Normal State
+
+![HPA Normal State](screenshots/hpa-normal.png)
+
+## HPA — Scale Up
+
+The backend HPA was validated under controlled CPU load, scaling from **2 to 5 replicas** when CPU utilization exceeded the configured **70% target**.
+
+![HPA Scale Up](screenshots/hpa-scale-up.png)
+
+## HPA — Scale Down
+
+After the controlled CPU load was removed, the backend HPA returned to the configured minimum of **2 replicas**.
+
+Verified state:
+
+```text
+NAME          REFERENCE            TARGETS       MINPODS   MAXPODS   REPLICAS
+backend-hpa   Deployment/backend   cpu: 1%/70%   2         5         2
+```
+
+This completes the validated HPA lifecycle: **2 → 5 → 2 replicas**.
+
+## Helm Release
+
+![Helm Status](screenshots/helm-status.png)
+
+## Helm Test
+
+![Helm Test](screenshots/helm-test.png)
+
+## Helm Rollback & Recovery
+
+![Helm Rollback](screenshots/helm-rollback.png)
+
+## Backend Port Forward
+
+![Backend Port Forward](screenshots/backend-port-forward.png)
+
+## Backend API Response
+
+![Backend Application](screenshots/backend-application.png)
+
 
 # 👨‍💻 Author
 
